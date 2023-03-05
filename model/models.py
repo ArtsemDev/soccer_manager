@@ -35,5 +35,9 @@ class Footballer(Base):
     def birthdate(self):
         return self.date_of_birth.strftime('%d.%m.%Y')
 
+    @property
+    def info(self):
+        return f'{self.full_name} {self.birthdate} {Team.get(self.team_id).name} {City.get(self.city_id).name} {Position.get(self.position_id).name}'
+
     def __repr__(self):
         return self.full_name
