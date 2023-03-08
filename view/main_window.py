@@ -166,6 +166,7 @@ class UiForm(QWidget):
             else:
                 footballer.delete()
                 deleted_count += 1
+        self.delete_filter = ''
         print(deleted_count)
 
     def open_delete_window(self):
