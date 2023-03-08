@@ -1,11 +1,16 @@
 from PySide6.QtCore import (QMetaObject, QSize, Qt)
 from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel,
-                               QPushButton, QVBoxLayout, QLineEdit)
+                               QPushButton, QVBoxLayout, QLineEdit, QWidget, QMainWindow, QInputDialog)
 
 from model import City, Footballer, Team, Position
+from view.search_window import SearchForm
 
 
-class UiForm(object):
+class UiForm(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -21,14 +26,20 @@ class UiForm(object):
         self.frame.setFrameShadow(QFrame.Raised)
         self.vertical_layout_2 = QVBoxLayout(self.frame)
         self.vertical_layout_2.setObjectName(u"vertical_layout_2")
-        self.lineEdit = QLineEdit(Form)
-        self.lineEdit.setObjectName(u"lineEdit")
-        self.vertical_layout_2.addWidget(self.lineEdit)
-        self.pushButton = QPushButton(self.frame)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setText('LOAD')
-        self.pushButton.clicked.connect(self.load_from_db)
-        self.vertical_layout_2.addWidget(self.pushButton)
+        self.search_filter = ''
+        self.delete_filter = ''
+
+        self.searchButton = QPushButton(self.frame)
+        self.searchButton.setObjectName(u"searchButton")
+        self.searchButton.setText('SEARCH')
+        self.searchButton.clicked.connect(self.open_search_window)
+        self.vertical_layout_2.addWidget(self.searchButton)
+
+        self.deleteButton = QPushButton(self.frame)
+        self.deleteButton.setObjectName(u"deleteButton")
+        self.deleteButton.setText('DELETE')
+        self.deleteButton.clicked.connect(self.open_delete_window)
+        self.vertical_layout_2.addWidget(self.deleteButton)
 
         self.frame_2 = QFrame(self.frame)
         self.frame_2.setObjectName(u"frame_2")
@@ -84,7 +95,7 @@ class UiForm(object):
 
         for footballer in footballers:
             info = footballer.info.lower().split()
-            for i in self.lineEdit.text().lower().split():
+            for i in self.search_filter.lower().split():
                 if i not in info:
                     break
             else:
@@ -130,4 +141,40 @@ class UiForm(object):
                 label.setText(position.name)
                 self.frames.append(frame)
                 self.vertical_layout_2.addWidget(frame, 0, Qt.AlignTop)
-        self.lineEdit.clear()
+        self.search_filter = ''
+
+    def open_search_window(self):
+        text, ok = QInputDialog.getText(
+            self,
+            'Input',
+            'Input',
+        )
+        if ok:
+            self.search_filter = text
+            self.load_from_db()
+
+    def _delete(self):
+        footballers = Footballer.select()
+
+        deleted_count = 0
+
+        for footballer in footballers:
+            info = footballer.info.lower().split()
+            for i in self.delete_filter.lower().split():
+                if i not in info:
+                    break
+            else:
+                footballer.delete()
+                deleted_count += 1
+        print(deleted_count)
+
+    def open_delete_window(self):
+        text, ok = QInputDialog.getText(
+            self,
+            'DELETE',
+            'FILTER DELETE'
+        )
+        if ok:
+            self.delete_filter = text
+            self._delete()
+            self.load_from_db()
